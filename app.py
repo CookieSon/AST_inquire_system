@@ -153,8 +153,10 @@ def search_department(keyword, school_groups, gsat):
                 target_schools = []
                 if "台成清交政" in school_groups:
                     target_schools += ["國立臺灣大學", "國立成功大學", "國立清華大學", "國立陽明交通大學", "國立政治大學"]
-                if "中字輩、台師大、北大" in school_groups:
-                    target_schools += ["國立中山大學", "國立中正大學", "國立中興大學", "國立中央大學", "國立臺灣師範大學", "國立臺北大學"]
+                if "中字輩" in school_groups:
+                    target_schools += ["國立中山大學", "國立中正大學", "國立中興大學", "國立中央大學"]
+                if "台師大、北大、海大" in school_groups:
+                    target_schools += ["國立臺灣師範大學", "國立臺北大學", "國立臺灣海洋大學"]
                 # 在清單內的學校設為 True，其餘 False。。  & : 交集，只有兩邊都是 True 才會存進 mask
                 mask &= df['校名'].isin(target_schools)
 
@@ -290,13 +292,16 @@ with st.form(key="search_form"):
     with col2:
         st.write("快速篩選學校清單：  \n(勾選後，  \n輸出結果只會有這些學校，  \n你可以只輸入你想要的科系名稱)")
         check_top = st.checkbox("台成清交政")
-        check_mid = st.checkbox("中字輩、台師大、北大")
+        check_mid = st.checkbox("中字輩")
+        check_noob = st.checkbox("台師大、北大、海大")
 
         school_group_cb = []
         if check_top:
             school_group_cb.append("台成清交政")
         if check_mid:
-            school_group_cb.append("中字輩、台師大、北大")
+            school_group_cb.append("中字輩")
+        if check_noob:
+            school_group_cb.append("台師大、北大、海大")
 
     with col3:
         st.write("你的學測級分 (60級分制) (選填)  \n(預設-1不會計算所需分數)")
