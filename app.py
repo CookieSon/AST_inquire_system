@@ -196,7 +196,7 @@ def search_department(keyword, school_groups, gsat):
 
             matched_data = df[mask]  # 把 mask 過濾好，存到 matched_data
 
-            # 建立每個科系的資料
+            # 建立該科系的資料
             for _, row in matched_data.iterrows():
                 base_name, group_name = parse_dept_name(row['學系名稱'])  # 將科系拆成系名和組別
 
