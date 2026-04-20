@@ -31,6 +31,8 @@ https://university-ast-inquire-system.streamlit.app/
 ### 資料庫建立過程
 115年：用爬蟲到考分會網站中的校系分則，將所有校系的 學測檢定標準、採計科目 抓下來  
 112~114年：把考分會公布的「各系組最低錄取分數及錄取人數一覽表」PDF 丟到 [iLovePDF](https://www.ilovepdf.com/zh-tw/pdf_to_excel) 轉成excel，再用程式碼轉成csv檔然後處理格式
-### 資料來源
+
+---
+## 資料來源
 [考分會校系分則](https://uac2.ncku.edu.tw/cross_search/)  
 [考分會資料下載專區](https://www.uac.edu.tw/downloads.htm#) (裡面可以下載到「各系組最低錄取分數及錄取人數一覽表」)
