@@ -1,6 +1,8 @@
 ### 分科校系分數查詢系統
 https://university-ast-inquire-system.streamlit.app/
 
+資訊課做的專題
+
 ---
 ### 功能介紹
 提供查詢今年 (115) 和前三年 (112~114) 的校系資訊，  
@@ -21,3 +23,8 @@ https://university-ast-inquire-system.streamlit.app/
 3. 計算所需分數  
    輸入你的學測分數，
    會幫你計算前幾年每個科系你分科需要考的分數。
+
+---
+### 檔案說明
+'app.py' : Streamlit 網頁主程式  
+
