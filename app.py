@@ -55,7 +55,7 @@ def cal_score(gsat1, subject1, history):
     subject_all = ['國', '英', '數A', '數B', '自', '社']
     subject_list = []
     for i in subject_all:
-        if gsat1.get(i,0) > 0:
+        if gsat1.get(i,-1) > -1:
             subject_list.append(i)
 
     # 算原始加權
@@ -171,13 +171,17 @@ def search_department(keyword, school_groups, gsat):
 
                 mask &= combined_text.str.contains(regex_pattern, regex=True, na=False)  # .str.contains() : 搜尋字串
 
-            # 排除法 - 系名 (解決醫科大亂鬥)
+            # 排除法 - 南大、暨南大學
+            if '南' in single_query and '暨' not in single_query:
+                mask &= ~df['校名'].astype(str).str.contains("國立暨南國際大學", na=False)  # ~ 表 not
+
+            # 排除法 - 系名 (醫學系)
             if "醫學系" in search_kw:
                 # 獸醫、牙醫、中醫
                 dept_chars = ['獸', '牙','中']
                 for char in dept_chars:
                     if char not in single_query:
-                        mask &= ~df['學系名稱'].astype(str).str.contains(char, na=False)  # ~ 表 not
+                        mask &= ~df['學系名稱'].astype(str).str.contains(char, na=False)
                 # 生物醫學系
                 if "生" not in single_query and "物" not in single_query:
                     mask &= ~df['學系名稱'].astype(str).str.contains("生物", na=False)
@@ -196,12 +200,12 @@ def search_department(keyword, school_groups, gsat):
 
                 # 計算使用者所需分數
                 if year != 115:
-                    if gsat != {'國':0, '英':0, '數A':0, '數B':0, '自':0, '社':0}:
+                    if gsat != {'國':-1, '英':-1, '數A':-1, '數B':-1, '自':-1, '社':-1}:
                         cal_ans = cal_score(gsat, row.get('採計科目及加權(含學測、分科及術科)', '??'),
                                              row.get('錄取分數', '—'))
                         req_score = cal_ans[0]
                         req_ave = cal_ans[1]
-                        if float(req_ave) >= 60:  # 所需平均大於60分
+                        if req_ave != '—' and float(req_ave) >= 60:  # 所需平均大於60分
                             req_ave = f"~~**{req_ave}**~~"
                     else:
                         req_score = '—'
@@ -289,17 +293,17 @@ with st.form(key="search_form"):
             school_group_cb.append("中字輩、台師大、北大")
 
     with col3:
-        st.write("你的學測級分 (60級分制) (選填)")
+        st.write("你的學測級分 (60級分制) (選填)  \n(預設-1不會計算所需分數)")
         col4, col5, col6 = st.columns([1,1,1])
         with col4:
-            chi = st.number_input('國文',0,60,0,1)
-            eng = st.number_input('英文',0,60,0,1)
+            chi = st.number_input('國文',-1,60,-1,1)
+            eng = st.number_input('英文',-1,60,-1,1)
         with col5:
-            matha = st.number_input('數A', 0, 60, 0, 1)
-            mathb = st.number_input('數B',0,60,0,1)
+            matha = st.number_input('數A', -1, 60, -1, 1)
+            mathb = st.number_input('數B',-1,60,-1,1)
         with col6:
-            sci = st.number_input('自然',0,60,0,1)
-            soc = st.number_input('社會', 0, 60, 0, 1)
+            sci = st.number_input('自然',-1,60,-1,1)
+            soc = st.number_input('社會', -1, 60, -1, 1)
 gsat = {'國':chi, '英':eng, '數A':matha, '數B':mathb, '自':sci, '社':soc}
 
 st.markdown("📊 搜尋結果")
