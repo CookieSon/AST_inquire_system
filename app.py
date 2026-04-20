@@ -196,7 +196,7 @@ def search_department(keyword, school_groups, gsat):
 
             # 建立每個科系的資料
             for _, row in matched_data.iterrows():
-                base_name, group_name = parse_dept_name(row['學系名稱'])  #將科系拆成系名和組別
+                base_name, group_name = parse_dept_name(row['學系名稱'])  # 將科系拆成系名和組別
 
                 # 計算使用者所需分數
                 if year != 115:
@@ -205,8 +205,14 @@ def search_department(keyword, school_groups, gsat):
                                              row.get('錄取分數', '—'))
                         req_score = cal_ans[0]
                         req_ave = cal_ans[1]
-                        if req_ave != '—' and float(req_ave) >= 60:  # 所需平均大於60分
+                        if req_ave != '—' and float(req_ave) >= 60:  # 所需平均大於60分，加粗體和刪除線
                             req_ave = f"~~**{req_ave}**~~"
+                        elif req_ave != '—' and row.get('平均', '—') != '—':  # 所需平均大於歷年平均，加粗體
+                            try:
+                                if float(req_ave) > float(row.get('平均', '—')):
+                                    req_ave = f"**{req_ave}**"
+                            except ValueError:
+                                pass
                     else:
                         req_score = '—'
                         req_ave = '—'
