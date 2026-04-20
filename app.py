@@ -290,7 +290,7 @@ with st.form(key="search_form"):
         search_btn = st.form_submit_button("開始搜尋", type="primary", use_container_width=True)
 
     with col2:
-        st.write("快速篩選學校清單：  \n(勾選後，  \n輸出結果只會有這些學校，  \n你可以只輸入你想要的科系名稱)")
+        st.write("快速篩選學校清單：  \n(勾選後，輸出結果只會有這些學校，  \n你可以只輸入你想要的科系名稱)")
         check_top = st.checkbox("台成清交政")
         check_mid = st.checkbox("中字輩")
         check_noob = st.checkbox("台師大、北大、海大")
