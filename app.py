@@ -40,9 +40,10 @@ def parse_dept_name(full_name):
 
 
 # === 計算所需分數  ======================================================================================================
-def cal_score(gsat1, subject1, history):
+def cal_score(gsat1, AST1, subject1, history):
     """
     gsat1 : 使用者的學測分數
+    AST1 : 使用者的分科分數
     subject1 : 該科系的分科採計科目
     history : 該科系的歷年分數
     """
@@ -51,11 +52,15 @@ def cal_score(gsat1, subject1, history):
     except (ValueError, TypeError):
         return ['—', '—']
 
-    # 將使用者學測有考的科目新增至 list
-    subject_all = ['國', '英', '數A', '數B', '自', '社']
+    # 將使用者學測分科有考的科目新增至 list
+    subject_gsat = ['國', '英', '數A', '數B', '自', '社']
+    subject_AST = ['數甲', '物', '化', '生', '數乙', '地', '歷', '公']
     subject_list = []
-    for i in subject_all:
+    for i in subject_gsat:
         if gsat1.get(i,-1) > -1:
+            subject_list.append(i)
+    for i in subject_AST:
+        if AST1.get(i,-1) > -1:
             subject_list.append(i)
 
     # 算原始加權
@@ -66,27 +71,29 @@ def cal_score(gsat1, subject1, history):
     except Exception:
         return ['—', '—']
 
-    # 分科會看學測分數而且有考的 dict
+    # 分科會看的科目而且有考的 dict
     subject_dict = {}
     subject1_items = str(subject1).split('、')
     for i in subject1_items:
         try:
-            if i[0] in subject_list:  # 國、英、自、社
+            if i[0] in subject_list:  # 國、英、自、社；物、化、生、地、歷、公
                 subject_dict[i[0]] = float(i[2:])
-            elif i[:2] in subject_list:  # 數A、數B
+            elif i[:2] in subject_list:  # 數A、數B；數甲、數乙
                 subject_dict[i[:2]] = float(i[3:])
         except ValueError:
             continue  # 遇到轉不出來的數字格式就跳過
 
-    # 扣掉學測有考的，算所需分數和平均
+    # 扣掉有考的，算所需分數和平均
     subject_dict_keys = list(subject_dict.keys())
-    for i in subject_dict_keys:  # 撈出我學測有考而且分科會看的科目
-        gsat_score = float(gsat.get(i,0)) # 撈出我學測分數
+    for i in subject_dict_keys:  # 撈出我有考而且分科會看的科目
+        gsat_score = float(gsat.get(i, 0)) # 撈出我科目分數
+        AST_score = float(AST.get(i,0))
+
         weight_now = float(subject_dict.get(i)) # 該科目加權
         score -= gsat_score * weight_now
+        score -= AST_score * weight_now
         weight -= weight_now
-    if weight <= 0:  # 如果分科採計科目只採學測，加權等於0
-        return ['0', '0']
+
     ave = f"{score / weight:.2f}"
     score = f"{score:.2f}"
 
@@ -94,11 +101,12 @@ def cal_score(gsat1, subject1, history):
 
 
 # === 核心搜尋與整理邏輯  =================================================================================================
-def search_department(keyword, school_groups, gsat):
+def search_department(keyword, school_groups, gsat, AST):
     """
     keyword: 使用者輸入的搜尋字詞
     school_groups: List，使用者勾選的學校群組 (例如 ["台成清交政"])
     gsat: 使用者的學測成績
+    AST: 使用者的分科成績
     """
 
     # 防爆機制 - 無效關鍵字
@@ -203,7 +211,7 @@ def search_department(keyword, school_groups, gsat):
                 # 計算使用者所需分數
                 if year != 115:
                     if gsat != {'國':-1, '英':-1, '數A':-1, '數B':-1, '自':-1, '社':-1}:
-                        cal_ans = cal_score(gsat, row.get('採計科目及加權(含學測、分科及術科)', '??'),
+                        cal_ans = cal_score(gsat, AST, row.get('採計科目及加權(含學測、分科及術科)', '??'),
                                              row.get('錄取分數', '—'))
                         req_score = cal_ans[0]
                         req_ave = cal_ans[1]
@@ -277,10 +285,10 @@ st.write("手機使用者建議開啟電腦版網站功能，更方便檢視")
 
 # st.form 將輸入區塊包裝起來，按下開始搜尋才會執行
 with st.form(key="search_form"):
-    col1, col2, col3 = st.columns([2, 1,1])
+    col1, col2, col3, col4 = st.columns([1,1,1,1])
 
     with col1:
-        search_input = st.text_area(
+        search_input = st.text_area(  # 這個會給搜尋函式用
             "🔍 搜尋科系",
             placeholder="請輸入校名或科系關鍵字  (可換行搜尋多個科系)，例如:\n成大電機\n台大\n醫學系\n",
             height=136
@@ -295,7 +303,7 @@ with st.form(key="search_form"):
         check_mid = st.checkbox("中字輩")
         check_noob = st.checkbox("台師大、北大、海大")
 
-        school_group_cb = []
+        school_group_cb = []  # 這個會給搜尋函式用
         if check_top:
             school_group_cb.append("台成清交政")
         if check_mid:
@@ -305,17 +313,35 @@ with st.form(key="search_form"):
 
     with col3:
         st.write("你的學測級分 (60級分制) (選填)  \n(預設-1不會計算所需分數)")
-        col4, col5, col6 = st.columns([1,1,1])
-        with col4:
+        col3_1, col3_2, col3_3 = st.columns([1,1,1])
+        with col3_1:
             chi = st.number_input('國文',-1,60,-1,1)
             eng = st.number_input('英文',-1,60,-1,1)
-        with col5:
+        with col3_2:
             matha = st.number_input('數A', -1, 60, -1, 1)
             mathb = st.number_input('數B',-1,60,-1,1)
-        with col6:
+        with col3_3:
             sci = st.number_input('自然',-1,60,-1,1)
             soc = st.number_input('社會', -1, 60, -1, 1)
-gsat = {'國':chi, '英':eng, '數A':matha, '數B':mathb, '自':sci, '社':soc}
+
+    with col4:
+        st.write("你的分科級分(選填)  \n(預設-1不會計入分數)")
+        col4_1, col4_2, col4_3, col4_4 = st.columns([1,1,1,1])
+        with col4_1:
+            math_ja = st.number_input('數甲',-1,60,-1,1)
+            math_yee = st.number_input('數乙', -1, 60, -1, 1)
+        with col4_2:
+            phy = st.number_input('物理',-1,60,-1,1)
+            geo = st.number_input('地理', -1, 60, -1, 1)
+        with col4_3:
+            che = st.number_input('化學', -1, 60, -1, 1)
+            his = st.number_input('歷史', -1, 60, -1, 1)
+        with col4_4:
+            bio = st.number_input('生物', -1, 60, -1, 1)
+            cit = st.number_input('公民', -1, 60, -1, 1)
+
+gsat = {'國':chi, '英':eng, '數A':matha, '數B':mathb, '自':sci, '社':soc}  # 這個會給搜尋函式用
+AST = {'數甲':math_ja, '物':phy, '化':che, '生':bio, '數乙':math_yee, '地':geo, '歷':his, '公':cit}
 
 st.markdown("📊 搜尋結果")
 
@@ -323,7 +349,7 @@ st.markdown("📊 搜尋結果")
 if search_btn:
     if search_input.strip() != "":
         # 呼叫搜尋函式
-        result_markdown = search_department(search_input, school_group_cb, gsat)
+        result_markdown = search_department(search_input, school_group_cb, gsat, AST)
 
         # 把算出來的 Markdown 結果印在網頁上
         st.markdown(result_markdown, unsafe_allow_html=True)  # unsafe_allow_html : 同意使用 Html
