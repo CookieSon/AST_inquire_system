@@ -94,7 +94,7 @@ def cal_score(gsat1, AST1, subject1, history):
         score -= AST_score * weight_now
         weight -= weight_now
 
-    ave = f"{score / weight:.2f}"
+    ave = f"{score / weight:.2f}" if weight != 0 else 0
     score = f"{score:.2f}"
 
     return [score,ave]
